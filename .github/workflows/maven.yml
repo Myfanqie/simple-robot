@@ -29,7 +29,7 @@ jobs:
           host: ${{secrets.VPS_HOST}}
           username: ${{secrets.VPS_USERNAME}}
           port: ${{secrets.VPS_PORT}}
-          password: $${{secrets.VPS_PASSWORD}}
+          password: ${{secrets.VPS_PASSWORD}}
           source: "./target/simbot-mirai-demo-2.0.5.jar"
           target: "/simple-robot/"
           strip_components: 2
