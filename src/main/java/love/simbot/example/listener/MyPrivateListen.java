@@ -114,7 +114,7 @@ public class MyPrivateListen {
 
     }
 
-    @OnGroup
+    @OnPrivate
     @Filter("一言")
     public void yiyan(PrivateMsg msg, MsgSender sender) {
         JSONObject jsonObject = YiYan.msg();
