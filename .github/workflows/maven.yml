@@ -34,26 +34,16 @@ jobs:
           target: "/simple-robot/"
           strip_components: 2
 
-      - name: log untrusted output
-          run: |
-
-            # disable command workflow processing
-            echo "::stop-commands::`echo -n ${{ github.token }} | sha256sum | head -c 64`"
-
-            # log untrusted output
-            echo "untrusted output"
-
-            # enable workflow command processing
-            echo "::`echo -n ${{ github.token }} | sha256sum | head -c 64`::"
-
-      - uses: webfactory/ssh-agent@v0.1.1
+      - name: ssh pipelines
+        uses: cross-the-world/ssh-pipeline@master
+        env:
+          WELCOME: "ssh pipeline"
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - name: Setup knownhosts
-        run: ssh-keyscan ${{secrets.VPS_HOST}} >> ~/.ssh/known_hosts
-
-      - name: Run SSH Command
-        run: |
-          ssh root@${{secrets.VPS_HOST}} "echo 'Hello Github Actions' > actions.log"
-          ssh root@${{secrets.VPS_HOST}} "cd /simple-robot"
-          ssh root@${{secrets.VPS_HOST}} "nohup java -jar simbot-mirai-demo-2.0.5.jar > log.file  2>&1 &"
+          host: ${{ secrets.VPS_HOST }}
+          user: ${{ secrets.VPS_USERNAME }}
+          pass: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          connect_timeout: 10s
+          script: |
+            cd /simple-robot
+            nohup java -jar simbot-mirai-demo-2.0.5.jar > log.file  2>&1 &
