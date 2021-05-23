@@ -15,10 +15,12 @@ import love.forte.simbot.annotation.OnPrivate;
 import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.MessageContentBuilder;
 import love.forte.simbot.api.message.MessageContentBuilderFactory;
+import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.MsgSender;
 import love.forte.simbot.api.sender.Sender;
 import love.simbot.example.enums.API;
+import love.simbot.example.fun.YiYan;
 
 /**
  * 私聊消息监听的示例类。
@@ -111,5 +113,15 @@ public class MyPrivateListen {
         }
 
     }
+
+    @OnGroup
+    @Filter("一言")
+    public void yiyan(PrivateMsg msg, MsgSender sender) {
+        JSONObject jsonObject = YiYan.msg();
+        String hitokoto = jsonObject.getStr("hitokoto");
+        String from = jsonObject.getStr("from");
+        sender.SENDER.sendPrivateMsg(msg,hitokoto+"\n--"+from);
+    }
+
 
 }

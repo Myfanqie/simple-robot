@@ -17,6 +17,7 @@ import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.MsgSender;
 import love.simbot.example.enums.API;
+import love.simbot.example.fun.YiYan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +101,17 @@ public class MyGroupListen {
         }
 
     }
+
+    @OnGroup
+    @Filter("一言")
+    public void yiyan(GroupMsg msg, MsgSender sender) {
+        JSONObject jsonObject = YiYan.msg();
+        String hitokoto = jsonObject.getStr("hitokoto");
+        String from = jsonObject.getStr("from");
+        sender.SENDER.sendGroupMsg(msg,hitokoto+"\n--"+from);
+    }
+
+
 
 
 
