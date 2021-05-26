@@ -29,14 +29,23 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
+        <dependency>
+            <groupId>love.forte.simple-robot.time-task</groupId>
+            <artifactId>time-task-core</artifactId>
+        </dependency>
+        <!-- 定时任务模块-quartz实现 -->
+        <dependency>
+            <groupId>love.forte.simple-robot.time-task</groupId>
+            <artifactId>time-task-quartz</artifactId>
+        </dependency>
 
 
         <!-- mirai 滑动验证依赖 -->
-<!--        <dependency>-->
-<!--            <groupId>net.mamoe</groupId>-->
-<!--            <artifactId>mirai-login-solver-selenium</artifactId>-->
-<!--            <version>1.0-dev-16</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>net.mamoe</groupId>-->
+        <!--            <artifactId>mirai-login-solver-selenium</artifactId>-->
+        <!--            <version>1.0-dev-16</version>-->
+        <!--        </dependency>-->
 
     </dependencies>
 
