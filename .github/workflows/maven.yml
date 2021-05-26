@@ -47,4 +47,4 @@ jobs:
           script: |
             ps aux|grep simbot-mirai-demo |grep -v grep|cut -c 9-16|xargs kill -15
             cd /simple-robot
-            nohup java -jar simbot-mirai-demo-2.0.5.jar > log.file  2>&1 &
+            sh robot.sh
