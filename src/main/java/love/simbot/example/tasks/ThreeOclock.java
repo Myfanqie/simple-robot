@@ -4,6 +4,7 @@ import love.forte.common.ioc.annotation.Beans;
 import love.forte.common.ioc.annotation.Depend;
 import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.MessageContentBuilder;
+import love.forte.simbot.api.message.MessageContentBuilderFactory;
 import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.bot.BotManager;
 import love.forte.simbot.timer.EnableTimeTask;
@@ -24,11 +25,12 @@ public class ThreeOclock {
     private BotManager botManager;
 
     @Depend
-    private MessageContentBuilder messageContentBuilder;
+    private MessageContentBuilderFactory messageContentBuilderFactory;
 
     //每十秒执行一次
     @Fixed(value = 10, timeUnit = TimeUnit.SECONDS)
     public void task() {
+        MessageContentBuilder messageContentBuilder = messageContentBuilderFactory.getMessageContentBuilder();
         BotSender sender = botManager.getDefaultBot().getSender();
         MessageContent msg = messageContentBuilder.imageLocal("/img/ThreeOclock.jpg").build();
 //        sender.SENDER.sendGroupMsg("264207436",msg);
