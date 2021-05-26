@@ -29,7 +29,7 @@ public class ThreeOclock {
     private MessageContentBuilderFactory messageContentBuilderFactory;
 
     //每十秒执行一次
-    @Cron(value = "0 30 15 ? * *")
+    @Cron(value = "0 55 15 ? * *")
     public void task() {
         MessageContentBuilder messageContentBuilder = messageContentBuilderFactory.getMessageContentBuilder();
         BotSender sender = botManager.getDefaultBot().getSender();
