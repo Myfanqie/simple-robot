@@ -7,6 +7,7 @@ import love.forte.simbot.api.message.MessageContentBuilder;
 import love.forte.simbot.api.message.MessageContentBuilderFactory;
 import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.bot.BotManager;
+import love.forte.simbot.timer.Cron;
 import love.forte.simbot.timer.EnableTimeTask;
 import love.forte.simbot.timer.Fixed;
 
@@ -28,12 +29,12 @@ public class ThreeOclock {
     private MessageContentBuilderFactory messageContentBuilderFactory;
 
     //每十秒执行一次
-    @Fixed(value = 10, timeUnit = TimeUnit.SECONDS)
+    @Cron(value = "0 30 15 ? * *")
     public void task() {
         MessageContentBuilder messageContentBuilder = messageContentBuilderFactory.getMessageContentBuilder();
         BotSender sender = botManager.getDefaultBot().getSender();
         MessageContent msg = messageContentBuilder.imageLocal("/img/ThreeOclock.jpg").build();
-//        sender.SENDER.sendGroupMsg("264207436",msg);
+        sender.SENDER.sendGroupMsg("264207436",msg);
         sender.SENDER.sendPrivateMsg("1752181917", msg);
     }
 
