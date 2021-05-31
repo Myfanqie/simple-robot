@@ -7,7 +7,7 @@ on:
     branches: [ master ]
   schedule:
     # 定时任务，在每天的5点推送天气信息到邮箱
-    - cron: '10 30 22 * * ? *'
+    - cron: '10 30 22 * * *'
 
 jobs:
   build:
