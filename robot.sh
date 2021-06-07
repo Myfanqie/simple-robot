@@ -1,0 +1,1 @@
+nohup java -jar simbot-mirai-demo-2.0.5.jar  > log.file  2>&1 &
