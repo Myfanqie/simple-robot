@@ -39,7 +39,7 @@ import java.util.Set;
 public class MyGroupListen {
     private static final Jedis jedis = new Jedis("106.14.70.31");
     private static Set<String> keys;
-    private static File file = new File("data.json");
+    private static File file = new File("/simple-robot/data.json");
     private static JSONObject root = JSONUtil.readJSONObject(file, Charset.defaultCharset());;
 
     static {
