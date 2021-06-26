@@ -4,10 +4,12 @@ import catcode.Neko;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.Filter;
+import love.forte.simbot.annotation.FilterValue;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.annotation.OnPrivate;
 import love.forte.simbot.api.message.MessageContent;
@@ -20,25 +22,51 @@ import love.simbot.example.enums.API;
 import love.simbot.example.fun.YiYan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
 
+import java.io.File;
+import java.nio.charset.Charset;
+import java.time.temporal.ValueRange;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 群消息监听的示例类。
  * 所有需要被管理的类都需要标注 {@link Beans} 注解。
+ *
  * @author ForteScarlet
  */
 @Beans
 public class MyGroupListen {
+    private static final Jedis jedis = new Jedis("106.14.70.31");
+    private static Set<String> keys;
 
-    /** log */
+    static {
+        //首先是选到第一个数据库，如果这个数据库没有数据的话那就加入一些数据进去
+        jedis.select(1);
+        keys = jedis.keys("*");
+        if (keys.isEmpty()) {
+            File file = new File("/simple-robot/data.json");
+            JSONObject jsonObject = JSONUtil.readJSONObject(file, Charset.defaultCharset());
+            for (String key : jsonObject.keySet()) {
+                JSONArray jsonArray = jsonObject.getJSONArray(key);
+                String[] strings = jsonArray.toArray(new String[]{});
+                jedis.sadd(key, strings);
+            }
+            System.out.println("OK!");
+        }
+    }
+
+    /**
+     * log
+     */
     private static final Logger LOG = LoggerFactory.getLogger(MyGroupListen.class);
 
     /**
      * 此监听函数代表，收到消息的时候，将消息的各种信息打印出来。
-     *
+     * <p>
      * 此处使用的是模板注解 {@link OnGroup}, 其代表监听一个群消息。
-     *
+     * <p>
      * 由于你监听的是一个群消息，因此你可以通过 {@link GroupMsg} 作为参数来接收群消息内容。
      */
     @OnGroup
@@ -67,13 +95,11 @@ public class MyGroupListen {
             System.out.println("Img url: " + image.get("url"));
         }
 
-
         // 获取发消息的人。
         GroupAccountInfo accountInfo = groupMsg.getAccountInfo();
         // 打印发消息者的账号与昵称。
         System.out.println(accountInfo.getAccountCode());
         System.out.println(accountInfo.getAccountNickname());
-
 
         // 获取群信息
         GroupInfo groupInfo = groupMsg.getGroupInfo();
@@ -81,8 +107,6 @@ public class MyGroupListen {
         System.out.println(groupInfo.getGroupCode());
         System.out.println(groupInfo.getGroupName());
     }
-
-
 
     @OnGroup
     @Filter("舔狗日记")
@@ -108,12 +132,37 @@ public class MyGroupListen {
         JSONObject jsonObject = YiYan.msg();
         String hitokoto = jsonObject.getStr("hitokoto");
         String from = jsonObject.getStr("from");
-        sender.SENDER.sendGroupMsg(msg,hitokoto+"\n--"+from);
+        sender.SENDER.sendGroupMsg(msg, hitokoto + "\n--" + from);
     }
 
+    @OnGroup
+    public void tingws(GroupMsg msg, MsgSender sender) {
+        String msgContent = msg.getMsg();
+        //如果存在这个值那就随机给一个呗
+        if (keys.contains(msgContent)) {
+            sender.SENDER.sendGroupMsg(msg, jedis.srandmember(msgContent));
+        }
+    }
 
+    @Filter(value = "听我说 {{key}} {{value}}")
+    @Filter(value = "听我说 {{key}},{{value}}")
+    @Filter(value = "听我说 {{key}}:{{value}}")
+    @Filter(value = "听我说 {{key}}={{value}}")
+    @Filter(value = "听我说 {{key}}-{{value}}")
+    @OnGroup
+    public void tingwoshuo(GroupMsg msg, MsgSender sender, @FilterValue("key") String key, @FilterValue("value") String value) {
+        Long sadd = jedis.sadd(key, value);
+        if (sadd == 1L) {
+            sender.SENDER.sendGroupMsg(msg, "\"" + key + "\"" + "添加成功！");
+        } else {
+            sender.SENDER.sendGroupMsg(msg, "或许添加失败了QAQ！");
+        }
+    }
 
-
-
+    @Filter(value = "test")
+    @OnGroup
+    public void test(GroupMsg msg, MsgSender sender) {
+        sender.SENDER.sendGroupMsg(msg, "爷来了！");
+    }
 
 }
