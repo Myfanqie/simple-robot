@@ -2,6 +2,7 @@ package love.simbot.example.listener;
 
 import catcode.Neko;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
@@ -40,16 +41,17 @@ import java.util.Set;
 public class MyGroupListen {
     private static final Jedis jedis = new Jedis("106.14.70.31");
     private static Set<String> keys;
+    private static File file = new File("/simple-robot/data.json");
+    private static JSONObject root;
 
     static {
         //首先是选到第一个数据库，如果这个数据库没有数据的话那就加入一些数据进去
         jedis.select(1);
         keys = jedis.keys("*");
         if (keys.isEmpty()) {
-            File file = new File("/simple-robot/data.json");
-            JSONObject jsonObject = JSONUtil.readJSONObject(file, Charset.defaultCharset());
-            for (String key : jsonObject.keySet()) {
-                JSONArray jsonArray = jsonObject.getJSONArray(key);
+            root = JSONUtil.readJSONObject(file, Charset.defaultCharset());
+            for (String key : root.keySet()) {
+                JSONArray jsonArray = root.getJSONArray(key);
                 String[] strings = jsonArray.toArray(new String[]{});
                 jedis.sadd(key, strings);
             }
@@ -144,17 +146,38 @@ public class MyGroupListen {
         }
     }
 
-    @Filter(value = "听我说 {{key}} {{value}}")
-    @Filter(value = "听我说 {{key}},{{value}}")
-    @Filter(value = "听我说 {{key}}:{{value}}")
-    @Filter(value = "听我说 {{key}}={{value}}")
-    @Filter(value = "听我说 {{key}}-{{value}}")
+    @OnGroup
+    @Filter(value = "提示")
+    public void tishi(GroupMsg msg, MsgSender sender) {
+        sender.SENDER.sendGroupMsg(msg, jedis.randomKey());
+    }
+
+    @Filter(value = "听我说{{key}} {{value}}")
+    @Filter(value = "听我说{{key}},{{value}}")
+    @Filter(value = "听我说{{key}}:{{value}}")
+    @Filter(value = "听我说{{key}}={{value}}")
+    @Filter(value = "听我说{{key}}-{{value}}")
     @OnGroup
     public void tingwoshuo(GroupMsg msg, MsgSender sender, @FilterValue("key") String key, @FilterValue("value") String value) {
+        key = key.trim();
+        LOG.info(msg.getMsg());
+        LOG.info(key + "=============>  " + value);
+
+        JSONArray targetJson = root.getJSONArray(key);
+        if (targetJson == null){
+            targetJson = new JSONArray();
+        }
+        targetJson.add(value);
+        root.set("w",targetJson);
+        String s = JSONUtil.toJsonStr(root);
+        //最后是将文件修改了
+        FileUtil.writeString(s,file,Charset.defaultCharset());
+
         Long sadd = jedis.sadd(key, value);
         if (sadd == 1L) {
             sender.SENDER.sendGroupMsg(msg, "\"" + key + "\"" + "添加成功！");
         } else {
+            LOG.error(key + "=============>  " + value);
             sender.SENDER.sendGroupMsg(msg, "或许添加失败了QAQ！");
         }
     }
