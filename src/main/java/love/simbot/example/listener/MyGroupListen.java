@@ -9,16 +9,14 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import love.forte.common.ioc.annotation.Beans;
-import love.forte.simbot.annotation.Filter;
-import love.forte.simbot.annotation.FilterValue;
-import love.forte.simbot.annotation.OnGroup;
-import love.forte.simbot.annotation.OnPrivate;
+import love.forte.simbot.annotation.*;
 import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.containers.GroupAccountInfo;
 import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.MsgSender;
+import love.forte.simbot.filter.MatchType;
 import love.simbot.example.enums.API;
 import love.simbot.example.fun.YiYan;
 import org.slf4j.Logger;
@@ -41,15 +39,14 @@ import java.util.Set;
 public class MyGroupListen {
     private static final Jedis jedis = new Jedis("106.14.70.31");
     private static Set<String> keys;
-    private static File file = new File("/simple-robot/data.json");
-    private static JSONObject root;
+    private static File file = new File("data.json");
+    private static JSONObject root = JSONUtil.readJSONObject(file, Charset.defaultCharset());;
 
     static {
         //首先是选到第一个数据库，如果这个数据库没有数据的话那就加入一些数据进去
         jedis.select(1);
         keys = jedis.keys("*");
         if (keys.isEmpty()) {
-            root = JSONUtil.readJSONObject(file, Charset.defaultCharset());
             for (String key : root.keySet()) {
                 JSONArray jsonArray = root.getJSONArray(key);
                 String[] strings = jsonArray.toArray(new String[]{});
@@ -142,6 +139,7 @@ public class MyGroupListen {
         String msgContent = msg.getMsg();
         //如果存在这个值那就随机给一个呗
         if (keys.contains(msgContent)) {
+
             sender.SENDER.sendGroupMsg(msg, jedis.srandmember(msgContent));
         }
     }
@@ -152,29 +150,34 @@ public class MyGroupListen {
         sender.SENDER.sendGroupMsg(msg, jedis.randomKey());
     }
 
-    @Filter(value = "听我说{{key}} {{value}}")
-    @Filter(value = "听我说{{key}},{{value}}")
-    @Filter(value = "听我说{{key}}:{{value}}")
-    @Filter(value = "听我说{{key}}={{value}}")
-    @Filter(value = "听我说{{key}}-{{value}}")
+
+
+    @Filter(value = "听我说",matchType = MatchType.STARTS_WITH)
     @OnGroup
-    public void tingwoshuo(GroupMsg msg, MsgSender sender, @FilterValue("key") String key, @FilterValue("value") String value) {
+    public void tingwoshuo(GroupMsg msg, MsgSender sender) {
+        String msg1 = msg.getMsg();
+        if (msg1.equals("听我说")) return;
+        String substring = msg1.substring(3);
+        String[] split = substring.split("，");
+        String key = split[0];
+        String value = split[1];
+
+
         key = key.trim();
-        LOG.info(msg.getMsg());
-        LOG.info(key + "=============>  " + value);
 
         JSONArray targetJson = root.getJSONArray(key);
-        if (targetJson == null){
+        if (null == targetJson){
             targetJson = new JSONArray();
         }
         targetJson.add(value);
-        root.set("w",targetJson);
+        root.set(key,targetJson);
         String s = JSONUtil.toJsonStr(root);
         //最后是将文件修改了
         FileUtil.writeString(s,file,Charset.defaultCharset());
 
         Long sadd = jedis.sadd(key, value);
         if (sadd == 1L) {
+            keys.add(key);
             sender.SENDER.sendGroupMsg(msg, "\"" + key + "\"" + "添加成功！");
         } else {
             LOG.error(key + "=============>  " + value);
