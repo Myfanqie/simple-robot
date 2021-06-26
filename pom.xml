@@ -38,6 +38,11 @@
             <groupId>love.forte.simple-robot.time-task</groupId>
             <artifactId>time-task-quartz</artifactId>
         </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.9.0</version>
+        </dependency>
 
 
         <!-- mirai 滑动验证依赖 -->
