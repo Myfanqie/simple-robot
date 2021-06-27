@@ -158,7 +158,7 @@ public class MyGroupListen {
         String msg1 = msg.getMsg();
         if (msg1.equals("听我说")) return;
         String substring = msg1.substring(3);
-        String[] split = substring.split("，");
+        String[] split = substring.split("：");
         String key = split[0];
         String value = split[1];
 
@@ -184,6 +184,25 @@ public class MyGroupListen {
             sender.SENDER.sendGroupMsg(msg, "或许添加失败了QAQ！");
         }
     }
+
+    @Filter(value = "忘记",matchType = MatchType.STARTS_WITH)
+    @OnGroup
+    public void wangji(GroupMsg msg, MsgSender sender) {
+        String msg1 = msg.getMsg();
+        if (msg1.equals("忘记")) return;
+        String substring = msg1.substring(2);
+        substring = substring.trim();
+
+        if (jedis.exists(substring)) {
+            keys.remove(substring);
+            jedis.del(substring);
+            sender.SENDER.sendGroupMsg(msg,substring+"移除成功！");
+        }else {
+            sender.SENDER.sendGroupMsg(msg,substring+"已经被移除了哦qwq！");
+        }
+    }
+
+
 
     @Filter(value = "test")
     @OnGroup
